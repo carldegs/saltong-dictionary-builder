@@ -1,7 +1,7 @@
 import { promises as fs } from 'fs';
 
 const DICT_FILE = 'tagalog_dict.txt';
-const OUT_FILE = 'grouped_dict.txt';
+const OUT_FILE = 'grouped_dict.json';
 
 const parseDictionary = async () => {
   const file = await fs.readFile(DICT_FILE);
