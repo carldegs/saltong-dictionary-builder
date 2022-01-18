@@ -14,6 +14,12 @@ const parseDictionary = async () => {
     });
   });
 
+  const length = groupedWords.map((words) => words.length);
+  console.log(length);
+  let total = 0;
+  length.forEach((i) => (total = total + i));
+  console.log(total);
+
   // TODO: save to DB instead
   await fs.writeFile(
     OUT_FILE,
@@ -21,6 +27,7 @@ const parseDictionary = async () => {
       4: groupedWords[4],
       5: groupedWords[5],
       7: groupedWords[7],
+      8: groupedWords[8],
     })
   );
 };

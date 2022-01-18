@@ -16,5 +16,8 @@
   "bugs": {
     "url": "https://github.com/carldegs/saltong-dictionary-builder/issues"
   },
-  "homepage": "https://github.com/carldegs/saltong-dictionary-builder#readme"
+  "homepage": "https://github.com/carldegs/saltong-dictionary-builder#readme",
+  "dependencies": {
+    "prompt": "^1.2.1"
+  }
 }
