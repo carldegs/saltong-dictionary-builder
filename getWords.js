@@ -1,8 +1,7 @@
-import { promises as fs } from 'fs';
+import { addDays, format } from 'date-fns';
 import prompt from 'prompt';
-
-const DICT_FILE = 'grouped_dict.json';
-const OUT_FILE = 'selected_words.json';
+import { GROUPED_DICTIONARY_FILE, SELECTED_WORDS_LIST } from './constants.js';
+import { writeFile, readFile } from './utils.js';
 
 function randomInteger(min, max) {
   return Math.floor(Math.random() * (max - min + 1)) + min;
@@ -27,20 +26,24 @@ const generateRandomIntegers = (min, max, num) => {
   return arr;
 };
 
-const exists = async (path) => {
-  try {
-    await fs.access(path);
-    return true;
-  } catch (err) {
-    return false;
-  }
-}
-
 const getWords = async () => {
   prompt.start();
 
-  const file = await fs.readFile(DICT_FILE);
-  const groupedDict = JSON.parse(file.toString());
+  const groupedDict = await readFile(GROUPED_DICTIONARY_FILE, true);
+  const initList = await readFile(SELECTED_WORDS_LIST, true);
+
+  let usedWords = [];
+  let lastDate = '';
+  let lastId = -1;
+
+  const initListArr = Object.entries(initList);
+  initListArr.forEach(([date, { word, gameId }], i) => {
+    usedWords = [...usedWords, word];
+    if (i === initListArr.length - 1) {
+      lastDate = date;
+      lastId = gameId;
+    }
+  });
 
   const { wordLength, numWords, numOptions, startDate, startGameId } =
     await prompt.get({
@@ -48,34 +51,39 @@ const getWords = async () => {
         wordLength: {
           message: 'Word Length',
           required: true,
-          default: 5,
+          default: usedWords?.length ? usedWords[0].length : 5,
           type: 'number',
         },
         numWords: {
           message: 'Number of words',
           required: true,
-          default: 10,
+          default: 7,
           type: 'number',
         },
         numOptions: {
           message: 'Number of options per word',
           required: true,
-          default: 5,
+          default: 10,
           type: 'number',
         },
         startDate: {
-          default: new Date().toISOString().split('T')[0],
+          default: lastDate
+            ? format(addDays(new Date(lastDate), 1), 'yyyy-MM-dd')
+            : format(new Date(), 'yyyy-MM-dd'),
           type: 'string',
           required: true,
         },
         startGameId: {
           required: true,
           type: 'number',
+          default: lastId ? lastId + 1 : 1,
         },
       },
     });
 
-  const dict = groupedDict[wordLength];
+  const dict = groupedDict[wordLength].filter(
+    (word) => usedWords.indexOf(word) < 0
+  );
   const words = generateRandomIntegers(
     0,
     dict.length,
@@ -119,15 +127,14 @@ const getWords = async () => {
     };
   });
 
-  const hasOutFile = await exists(OUT_FILE);
-  
-  if (hasOutFile) {
-    await fs.unlink(OUT_FILE);
-  }
+  result = {
+    ...initList,
+    ...result,
+  };
 
-  await fs.writeFile(OUT_FILE, JSON.stringify(result));
+  await writeFile(result, SELECTED_WORDS_LIST);
+
   return JSON.stringify(result);
 };
 
-const words = await getWords();
-console.log(words);
+await getWords();

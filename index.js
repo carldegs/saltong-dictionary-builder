@@ -1,10 +1,8 @@
-import { promises as fs } from 'fs';
-
-const DICT_FILE = 'tagalog_dict.txt';
-const OUT_FILE = 'grouped_dict.json';
+import { GROUPED_DICTIONARY_FILE, RAW_DICTIONARY_FILE } from './constants.js';
+import { readFile, writeFile } from './utils.js';
 
 const parseDictionary = async () => {
-  const file = await fs.readFile(DICT_FILE);
+  const file = await readFile(RAW_DICTIONARY_FILE);
   const words = file.toString().replace(/\r/g, '').split('\n');
 
   let groupedWords = Array.from(new Array(20)).map(() => []);
@@ -20,15 +18,14 @@ const parseDictionary = async () => {
   length.forEach((i) => (total = total + i));
   console.log(total);
 
-  // TODO: save to DB instead
-  await fs.writeFile(
-    OUT_FILE,
-    JSON.stringify({
-      4: groupedWords[4],
-      5: groupedWords[5],
-      7: groupedWords[7],
-      8: groupedWords[8],
-    })
+  await writeFile(
+    Object.fromEntries(
+      [4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19].map((i) => [
+        i,
+        groupedWords[i],
+      ])
+    ),
+    GROUPED_DICTIONARY_FILE
   );
 };
 
